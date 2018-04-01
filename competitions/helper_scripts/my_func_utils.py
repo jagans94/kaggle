@@ -1,20 +1,34 @@
 import os
-from keras import models
 import zipfile
 import shutil
+import time
+from keras import models
 
 def unzip_dataset(src_dir, dest_dir=None, cleanup=False):
     '''
+    Unzips zipped files in 'src_dir' to 'dest_dir'.
+    If 'cleanup' = True, will delete the zip files.
     '''
-    print(os.getcwd())
-    for filename in os.listdir(src_dir):
-        print(filename)
-        path = os.path.join(src_dir,filename)
-        with zipfile.ZipFile(path,"r") as zip_ref:
-            dest_dir = src_dir if not dest_dir else dest_dir
+    # use this for debugging
+    #print(os.getcwd())
+    
+    if not dest_dir:
+        dest_dir = src_dir
+
+    print("Extracting from '{}'' to '{}'.".format(src_dir,dest_dir))
+    print('This might take some time...')
+    start = time.time()
+
+    pathnames = [os.path.join(src_dir,filename) for filename in os.listdir(src_dir) if filename.endswith('.zip')]
+    for path in pathnames:
+        with zipfile.ZipFile(path,"r") as zip_ref:    
             zip_ref.extractall(dest_dir)
     
-    #   if cleanup: print(shutil.rmtree.avoids_symlink_attacks)
+    if cleanup:
+        for path in pathnames: os.remove(path)
+
+    end = time.time()
+    print('Finished. Time taken: %.2fs.' %(end - start))
 
 def load_model(path=None):
     '''
