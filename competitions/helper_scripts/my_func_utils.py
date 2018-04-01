@@ -1,5 +1,20 @@
 import os
 from keras import models
+import zipfile
+import shutil
+
+def unzip_dataset(src_dir, dest_dir=None, cleanup=False):
+    '''
+    '''
+    print(os.getcwd())
+    for filename in os.listdir(src_dir):
+        print(filename)
+        path = os.path.join(src_dir,filename)
+        with zipfile.ZipFile(path,"r") as zip_ref:
+            dest_dir = src_dir if not dest_dir else dest_dir
+            zip_ref.extractall(dest_dir)
+    
+    #   if cleanup: print(shutil.rmtree.avoids_symlink_attacks)
 
 def load_model(path=None):
     '''
@@ -25,8 +40,8 @@ def save_model(model):
 
     model.save(path)
 
-def load_data(m=None,path=None):
-    '''
+'''def load_data(m=None,path=None):
+   
     The function expects by default 32x32 size images and returns a tuple.
     Arguments: m - # of examples, path - path/to/images 
     Returns: (data, labels)
@@ -35,7 +50,7 @@ def load_data(m=None,path=None):
     n_H - image height
     n_W - image width
     n_C - # of channels
-    '''        
+      
     if not path: 
         path = 'data/imgs/'
     if not m:
@@ -57,4 +72,4 @@ def load_data(m=None,path=None):
         
     #shuffle(X,y)
       
-    return X, y
+    return X, y'''
