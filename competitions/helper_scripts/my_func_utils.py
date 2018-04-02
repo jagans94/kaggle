@@ -36,15 +36,18 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
 
     """
     if labels == []: labels = np.unique(mapping[:,1])
-        
+    # no. of files in directory
+    tnof = len([fname for fname in os.listdir(directory) if os.path.isfile(os.path.join(directory, fname))])
+
     # Checks
     assert len(dict(mapping)) == len(mapping) 
     assert os.path.isdir(directory)  
     assert mapping.shape == mapping.reshape(-1,2).shape 
     assert labels.size > 1
     assert validation_split in np.arange(0.0,1.0,1e-3)
+    assert tnof > 0
     print('Tests passed.')
-    print('Total no. of files: ', len([fname for fname in os.listdir(directory) if os.path.isfile(os.path.join(directory, fname))]))
+    print('Total no. of files: ', )
     print('Selected no. of files: ', len(mapping))
 
     # Helper functions
