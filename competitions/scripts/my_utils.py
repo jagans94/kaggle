@@ -101,34 +101,30 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
     print('Finished. Time taken: %.2fs.' %(end - start))
 
 
-def unzip_dataset(src_dir, dest_dir = None, cleanup = False):
-    """Unzips zipped files in the 'src_dir' to 'dest_dir'.
-
-    # Arguments
-        src_dir: Source directory, i.e. where the zip files are.
-        dest_dir: Destination directory.
-        cleanup: Flag. Set this if you want to remove the zip files after extracting.
-
+def unpack_dataset(src_dir, dest_dir):
+    """Unpacks files in the 'src_dir' to 'dest_dir'.
     """
-    if not dest_dir:
-        dest_dir = src_dir
-    
    # Checks
-    assert os.path.isdir(src_dir), "The source directory doesnot exist!!"
-    assert os.path.isdir(dest_dir), "The destination directory doesnot exist!!"
+    assert os.path.isdir(src_dir), "Error: {} doesn't exist.".format(src_dir)
+    assert os.path.isdir(dest_dir), "Error: {} doesn't exist.".format(dest_dir)
     print('Tests passed.')
 
     print("Extracting from '{}' to '{}'.".format(src_dir,dest_dir))
     print('\nThis might take a while...')
     start = time.time()
 
-    pathnames = [os.path.join(src_dir,filename) for filename in os.listdir(src_dir) if filename.endswith('.zip')]
-    for path in pathnames:
-        with zipfile.ZipFile(path,"r") as zip_ref:    
-            zip_ref.extractall(dest_dir)
-    
-    if cleanup:
-        for path in pathnames: os.remove(path)
+    for fname in os.listdir(src_dir):
+        path = os.path.join(src_dir,fname)
+
+        if fname.endswith('.zip'):
+            with zipfile.ZipFile(path,"r") as zip_ref:    
+                zip_ref.extractall(dest_dir)
+
+        elif os.path.isfile(path):
+            shutil.copy(path, dest_dir)
+
+        elif os.path.isdir(path):
+            shutil.copytree(path,os.path.join(dest_dir,fname))
 
     end = time.time()
     print('Finished. Time taken: %.2fs.' %(end - start))
