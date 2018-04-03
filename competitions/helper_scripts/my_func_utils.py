@@ -9,17 +9,6 @@ import numpy as np
 from keras import models
 from sklearn.model_selection import train_test_split
 
-def copy_or_move_dataset(src_dir, dest_dir, copy = True):
-    pass
-    """Utility function for copying/moving the dataset.
-
-    # Arguments
-        src_dir: Input tensor. Must be 3D.
-        dest_dir: Rotation range, in degrees.
-        [copy]: Index of axis for rows in the input tensor.
-
-    """
-
 def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_state = 0):
     """Bins the dataset (present in the mapping representation) into respective classes.
        Use this to bin the entire dataset, or just a subset of it.
@@ -32,7 +21,7 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
         [labels]: Class labels. Needs a minimum of 2 classes. If 'empty', inferred from the mapping. 
                   You can even pass a subset of labels, if required.
         [validation_split]: A float in the half-interval range [0,1). Used to split the 'dataset' into training and validation sets.
-        [random_state] : Random seed for test/val split.
+        [random_state] : Random seed for train/val split.
 
     """
     if labels == []: labels = np.unique(mapping[:,1])
@@ -40,12 +29,12 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
     tnof = len([fname for fname in os.listdir(directory) if os.path.isfile(os.path.join(directory, fname))])
 
     # Checks
-    assert len(dict(mapping)) == len(mapping) 
-    assert os.path.isdir(directory)  
-    assert mapping.shape == mapping.reshape(-1,2).shape 
-    assert labels.size > 1
-    assert validation_split in np.arange(0.0,1.0,1e-3)
-    assert tnof > 0
+    assert len(dict(mapping)) == len(mapping), "The mapping is not hashable!!"
+    assert os.path.isdir(directory), "The directory doesnot exist!!"
+    assert mapping.shape == mapping.reshape(-1,2).shape, "The mapping provided is incorrect. Check the doc string for more info."
+    assert labels.size > 1, "Too few labels!!"
+    assert validation_split in np.arange(0.0,1.0,1e-3), "The value provided for 'validation_split' arg is invalid. Check the doc string for more info."
+    assert tnof > 0, "There are no files in the directory."
     print('Tests passed.')
     print('Total no. of files: ', )
     print('Selected no. of files: ', len(mapping))
@@ -106,11 +95,13 @@ def unzip_dataset(src_dir, dest_dir = None, cleanup = False):
         cleanup: Flag. Set this if you want to remove the zip files after extracting.
 
     """
-    # use this for debugging
-    #print(os.getcwd())
-    
     if not dest_dir:
         dest_dir = src_dir
+    
+   # Checks
+    assert os.path.isdir(src_dir), "The source directory doesnot exist!!"
+    assert os.path.isdir(dest_dir), "The destination directory doesnot exist!!"
+    print('Tests passed.')
 
     print("Extracting from '{}' to '{}'.".format(src_dir,dest_dir))
     print('This might take some time...')
@@ -126,61 +117,3 @@ def unzip_dataset(src_dir, dest_dir = None, cleanup = False):
 
     end = time.time()
     print('Finished. Time taken: %.2fs.' %(end - start))
-
-def load_model(path=None):
-    '''
-    Loads a model from the default directory `../saved_models`.
-    '''
-    model_dir = '../saved_models'
-    model_name = input("Enter model name.(Example: fashion_mnist_v1.h5)\n") 
-    
-    path = os.path.join(model_dir,model_name)
-    assert os.path.isfile(path)
-    
-    return models.load_model(path)
-
-def save_model(model):
-    '''
-    Saves the given model to the default directory `../saved_models`.
-    '''
-    model_dir = '../saved_models'
-    model_name = input("Enter model name. (Example: fashion_mnist_v1.h5)\n")
-    
-    path = os.path.join(model_dir,model_name)
-    assert os.path.isfile(path)
-
-    model.save(path)
-
-'''def load_data(m=None,path=None):
-   
-    The function expects by default 32x32 size images and returns a tuple.
-    Arguments: m - # of examples, path - path/to/images 
-    Returns: (data, labels)
-    
-    shape = (m, n_H, n_W,n_C)
-    n_H - image height
-    n_W - image width
-    n_C - # of channels
-      
-    if not path: 
-        path = 'data/imgs/'
-    if not m:
-        m = len(os.listdir(path))
-    else: 
-        assert type(m) == int
-    
-    shape = (m,32,32,1)
-    m_y0 = len([filename for filename in os.listdir(path) if filename.startswith('no-tick')])
-    m_y1 = len([filename for filename in os.listdir(path) if filename.startswith('tick')])
-            
-    X = np.empty(shape, dtype='uint8')
-    y0, y1 = np.zeros(shape = (m_y0,)), np.ones(shape = (m_y1,))
-    y = np.concatenate((y0,y1))
-    
-    
-    for i, img in enumerate(os.listdir(path)): 
-        X[i] = cv2.imread(os.path.join(path, img),0).reshape(shape[1:])
-        
-    #shuffle(X,y)
-      
-    return X, y'''
