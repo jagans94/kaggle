@@ -1,12 +1,9 @@
-# general imports
 import time
 import os, shutil
 import zipfile
 
 import numpy as np
-
-# specific imports
-from keras import models
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_state = 0):
@@ -38,6 +35,9 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
     print('Tests passed.')
     print('Total no. of files: ', )
     print('Selected no. of files: ', len(mapping))
+
+    print('\nThis might take a while...')
+    start = time.time()
 
     # Helper functions
     def create_labels_folder(directory, labels):
@@ -84,7 +84,10 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
     else:
         # Binning the files
         create_labels_folder(directory, labels)
-        move_files_into_labels_folders(directory, directory, dict(mapping))  
+        move_files_into_labels_folders(directory, directory, dict(mapping)) 
+
+    end = time.time()
+    print('Finished. Time taken: %.2fs.' %(end - start)) 
 
 def unzip_dataset(src_dir, dest_dir = None, cleanup = False):
     """Unzips zipped files in the 'src_dir' to 'dest_dir'.
@@ -104,7 +107,7 @@ def unzip_dataset(src_dir, dest_dir = None, cleanup = False):
     print('Tests passed.')
 
     print("Extracting from '{}' to '{}'.".format(src_dir,dest_dir))
-    print('This might take some time...')
+    print('\nThis might take a while...')
     start = time.time()
 
     pathnames = [os.path.join(src_dir,filename) for filename in os.listdir(src_dir) if filename.endswith('.zip')]
@@ -117,3 +120,31 @@ def unzip_dataset(src_dir, dest_dir = None, cleanup = False):
 
     end = time.time()
     print('Finished. Time taken: %.2fs.' %(end - start))
+
+def plot_history(history):
+    """Plot the loss and accuracy curves for training and validation .
+
+    # Arguments
+        history: The 'History' object returned by 'fit' family of methods.
+
+    """
+    acc = history.history['acc']
+    val_acc = history.history['val_acc']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs = range(1,len(acc)+1)
+
+    plt.plot(epochs, acc, 'bo', label='Training acc')
+    plt.plot(epochs, val_acc, 'b', label='Validation acc')
+    plt.title('Training and validation accuracy')
+    plt.legend()
+
+    plt.figure()
+
+    plt.plot(epochs, loss, 'bo', label='Training loss')
+    plt.plot(epochs, val_loss, 'b', label='Validation loss')
+    plt.title('Training and validation loss')
+    plt.legend()
+
+    plt.show()
