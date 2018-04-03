@@ -4,12 +4,15 @@ import zipfile
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
+# Methods:
+
 def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_state = 0):
-    """Bins the dataset (present in the mapping representation) into respective classes.
-       Use this to bin the entire dataset, or just a subset of it.
-       Complements the 'ImageDataGenerator' class in Keras.
+    """Bins the dataset (given in the mapping representation) into respective classes.
+       Use this to bin the entire dataset, or just a subset of it. Complements the 'ImageDataGenerator' class in Keras.
+       In case of train/val split, the resulting mappings are stored into a '.csv' file in respective 'train' and 'val' folders.
 
     # Arguments
         directory: Source directory.
@@ -19,7 +22,7 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
                   You can even pass a subset of labels, if required.
         [validation_split]: A float in the half-interval range [0,1). Used to split the 'dataset' into training and validation sets.
         [random_state] : Random seed for train/val split.
-
+    
     """
     if labels == []: labels = np.unique(mapping[:,1])
     # no. of files in directory
@@ -61,12 +64,12 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
 
         X, y = mapping[:,0], mapping[:,1]
         X_train, X_val, y_train, y_val = train_test_split(  
-                                                        X, y,
-                                                        test_size = validation_split, 
-                                                        random_state=random_state, 
-                                                        stratify = y,
-                                                        )
-        # Need to reshape the numpy arrays to use them.
+                                                    X, y,
+                                                    test_size = validation_split, 
+                                                    random_state=random_state, 
+                                                    stratify = y,
+                                                    )
+        # Need to reshape the numpy arrays to use them
         X_train = X_train.reshape(-1,1)
         y_train = y_train.reshape(-1,1)
         X_val = X_val.reshape(-1,1)
@@ -74,6 +77,14 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
 
         train_mapping = np.concatenate([X_train,y_train], axis = 1)
         val_mapping = np.concatenate((X_val,y_val), axis = 1)
+
+        # Saving the mapping to '.csv' files
+        data_tmap = pd.DataFrame(train_mapping, column = ['id','label'])
+        data_vmap = pd.DataFrame(val_mapping, column = ['id','label'])
+        data_tmap.to_csv(train_path)
+        data_vmap.to_csv(val_path)
+        print("No. of train samples:" ,train_mapping.shape[0])
+        print("No. of validation samples:" ,val_mapping.shape[0])
 
         # Binning the files
         create_labels_folder(train_path, labels)
@@ -84,10 +95,11 @@ def bin_dataset(directory, mapping, labels = [], validation_split = 0.0, random_
     else:
         # Binning the files
         create_labels_folder(directory, labels)
-        move_files_into_labels_folders(directory, directory, dict(mapping)) 
+        move_files_into_labels_folders(directory, directory, dict(mapping))
 
     end = time.time()
-    print('Finished. Time taken: %.2fs.' %(end - start)) 
+    print('Finished. Time taken: %.2fs.' %(end - start))
+
 
 def unzip_dataset(src_dir, dest_dir = None, cleanup = False):
     """Unzips zipped files in the 'src_dir' to 'dest_dir'.

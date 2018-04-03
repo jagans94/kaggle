@@ -45,7 +45,7 @@ def conv_top(input_shape, num_classes):
 
     return model
 
-def extract_features(model, sample_count, generator, batch_size = 32):
+def extract_features(model, sample_count, generator, num_classes, batch_size = 32):
     """Extracts features and labels from a model.
        Use this for fast feature extraction.
 
@@ -56,10 +56,10 @@ def extract_features(model, sample_count, generator, batch_size = 32):
     """
     feature_shape = (sample_count,) + ((model.layers[-1]).output_shape)[1:]
     features = np.zeros(shape = feature_shape)
-    labels = np.zeros(shape=(feature_shape[0]))
+    labels = np.zeros(shape=(feature_shape[0],num_classes))
     
     i = 0
-    for inputs_batch, labels_batch in generator:
+    for inputs_batch, labels_batch in generator:        
         features_batch = model.predict(inputs_batch)
         features[i * batch_size : (i + 1) * batch_size] = features_batch
         labels[i * batch_size : (i + 1) * batch_size] = labels_batch
