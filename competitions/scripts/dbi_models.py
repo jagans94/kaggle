@@ -26,13 +26,12 @@ def basic(input_shape, num_classes, dropout = False):
     if dropout: model.add(layers.Dropout(0.5))
     model.add(layers.Dense(512, activation='relu'))
     model.add(layers.Dense(num_classes, activation='softmax'))
-
+    
     return model
 
-def conv_base(input_shape, path = None):
-    """Returns a CNN base model. 
+def vgg16_conv_base(input_shape):
+    """Returns a VGG16 CNN base. 
     """
-    if path and os.path.isfile(path): return models.load_model(path)
     return VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
 
 def conv_top(input_shape, num_classes):
