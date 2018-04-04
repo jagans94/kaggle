@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from keras.preprocessing.image import ImageDataGenerator
 
 # Methods:
 
@@ -23,7 +24,7 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
         [random_state] : Random seed for train/val split.
 
     # Returns
-        path -> (base_dir/bin/train, base_dir/bin/val)
+        paths -> (base_dir/bin/train, base_dir/bin/val)
     
     """
     if labels == []: labels = np.unique(mapping[:,1])
@@ -134,11 +135,63 @@ def unpack_dataset(src_dir, dest_dir):
     end = time.time()
     print('Finished. Time taken: %.2fs.' %(end - start))
 
-def plot_history(history):
-    """Plot the loss and accuracy curves for training and validation .
+def extract_features(model, sample_count, generator, num_classes, batch_size = 32):
+    """Extracts features and labels from a model.
+       Use this for fast feature extraction.
 
     # Arguments
-        history: The 'History' object returned by 'fit' family of methods.
+        model: The model to extract features from.
+        sample_count: No. of expected samples.
+        generator: Directory Iterator. Corresponds to 'ImageDataGenerator.flow_from_directory'.
+    """
+    feature_shape = (sample_count,) + ((model.layers[-1]).output_shape)[1:]
+    features = np.zeros(shape = feature_shape)
+    labels = np.zeros(shape=(feature_shape[0],num_classes))
+    
+    i = 0
+    for inputs_batch, labels_batch in generator:        
+        features_batch = model.predict(inputs_batch)
+        features[i * batch_size : (i + 1) * batch_size] = features_batch
+        labels[i * batch_size : (i + 1) * batch_size] = labels_batch
+        i += 1
+        if i * batch_size >= sample_count: break
+
+    return features, labels
+
+def data_generator(directory, target_size, batch_size = 32, seed = 0, augment = False):
+    """This is a wrapper around the 'flow_from_directory' method of the 'ImageDataGenerator' class
+       with preset parameters for data augmentation. 
+
+    # Arguments
+        directory, target_size, batch_size, seed: Arguments for 'flow_from_directory' method.
+        augment: If 'True', allows real-time data augmentation, else rescales the data.
+    """
+    datagen = ImageDataGenerator(rescale=1./255)
+    
+    if augment: datagen = ImageDataGenerator(
+                rescale=1./255,
+                rotation_range=40,
+                width_shift_range=0.2,
+                height_shift_range=0.2,
+                shear_range=0.2,
+                zoom_range=0.2,
+                horizontal_flip=True,
+                fill_mode='nearest')
+
+
+    return datagen.flow_from_directory(
+                directory,
+                target_size = target_size,
+                batch_size = batch_size,
+                seed = seed,
+                class_mode = 'categorical')
+
+
+def plot_history(history):
+    """Plot the loss and accuracy curves for training and validation.
+
+    # Arguments
+        history: The 'History' object returned by 'fit' family of methods in Keras.
 
     """
     acc = history.history['acc']
