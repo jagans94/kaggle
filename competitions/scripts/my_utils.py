@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 # Methods:
 
 def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [], random_state = 0):
-    """Bins the dataset into respective classes and returns a path to the 'binned' directory.
+    """Bins the dataset into respective classes and returns a pathS to the 'binned' directories.
        Complements the 'ImageDataGenerator' class in Keras.
        The train/val split mappings are stored into '.csv' files.
 
@@ -23,12 +23,12 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
         [random_state] : Random seed for train/val split.
 
     # Returns
-        path -> base_dir/binned_dir
+        path -> (base_dir/bin/train, base_dir/bin/val)
     
     """
     if labels == []: labels = np.unique(mapping[:,1])
     _dir = os.path.join(base_dir, sub_dir)
-    _has_files = ([os.path.isfile(os.path.join(_dir, fname)) for fname in os.listdir(_dir)]).any()
+    _has_files = any([os.path.isfile(os.path.join(_dir, fname)) for fname in os.listdir(_dir)])
 
     # Checks
     assert os.path.isdir(_dir), "Error: The directory doesn't exist."
@@ -40,15 +40,14 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
     print('Total no. of files: ', )
     print('Selected no. of files: ', len(mapping))
 
-    print('\nThis might take a while...', end = '. ')
+    print('\nThis might take a while...')
     start = time.time()
 
     # Helper functions
     def create_labels_folder(directory, labels):
-        for label in labels:
+        for label in labels:    
             path = os.path.join(directory,label)
-            if not os.path.exists(path):
-                os.makedirs(path)
+            if not os.path.isdir(path): os.makedirs(path)
     
     def copy_files_into_labels_folders(src_dir, dst_dir, mapping):
         for fname, label in mapping.items():
@@ -59,6 +58,7 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
     
     # Directory paths
     bin_dir = os.path.join(base_dir, 'bin')
+    if not os.path.isdir(bin_dir): os.mkdir(bin_dir)
     train_path = os.path.join(bin_dir, 'train')
     val_path = os.path.join(bin_dir, 'val')
 
@@ -66,8 +66,8 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
     if validation_split > 0.0:
         # Computing the split
         X, y = mapping[:,0], mapping[:,1]
-        X_train, X_val, y_train, y_val 
-                    = train_test_split( X, y,
+        X_train, X_val, y_train, y_val = train_test_split( 
+                                        X, y,
                                         test_size = validation_split, 
                                         random_state=random_state, 
                                         stratify = y,
@@ -81,19 +81,19 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
         train_mapping = np.concatenate([X_train,y_train], axis = 1)
         val_mapping = np.concatenate((X_val,y_val), axis = 1)
 
-        # Saving mappings to '.csv' files
-        data_tmap = pd.DataFrame(train_mapping, column = ['id','label'])
-        data_vmap = pd.DataFrame(val_mapping, column = ['id','label'])
-        data_tmap.to_csv(os.path.join(bin_dir), 'train_map.csv')
-        data_vmap.to_csv(os.path.join(bin_dir), 'val_map.csv')
-        print("No. of train samples:" ,train_mapping.shape[0])
-        print("No. of validation samples:" ,val_mapping.shape[0])
-
         # Binning the files
         create_labels_folder(train_path, labels)
         create_labels_folder(val_path, labels)
         copy_files_into_labels_folders(_dir, train_path, dict(train_mapping))
         copy_files_into_labels_folders(_dir, val_path, dict(val_mapping))
+
+        # Saving mappings to '.csv' files
+        data_tmap = pd.DataFrame(train_mapping, columns = ['id','label'])
+        data_vmap = pd.DataFrame(val_mapping, columns = ['id','label'])
+        data_tmap.to_csv(os.path.join(bin_dir, 'train_map.csv'))
+        data_vmap.to_csv(os.path.join(bin_dir, 'val_map.csv'))
+        print("No. of train samples:" ,train_mapping.shape[0])
+        print("No. of validation samples:" ,val_mapping.shape[0])
     
     else:
         # Binning the files
@@ -102,6 +102,8 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
 
     end = time.time()
     print('Done. Time taken: %.2fs.' %(end - start))
+
+    return train_path, val_path
 
 
 def unpack_dataset(src_dir, dest_dir):
@@ -116,12 +118,12 @@ def unpack_dataset(src_dir, dest_dir):
     print('\nThis might take a while...')
     start = time.time()
 
+    fmts = ['.tar.bz2', '.tbz2', '.tar.gz', '.tgz', '.tar', '.tar.xz', '.txz', '.zip']
+
     for fname in os.listdir(src_dir):
         path = os.path.join(src_dir,fname)
-
-        if fname.endswith('.zip'):
-            with zipfile.ZipFile(path,"r") as zip_ref:    
-                zip_ref.extractall(dest_dir)
+        if os.path.splitext(fname)[1] in fmts:
+            shutil.unpack_archive(path, dest_dir)
 
         elif os.path.isfile(path):
             shutil.copy(path, dest_dir)
