@@ -11,7 +11,7 @@ from keras.preprocessing.image import ImageDataGenerator
 # Methods:
 
 def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [], random_state = 0):
-    """Bins the dataset into respective classes and returns a pathS to the 'binned' directories.
+    """Bins the dataset into respective classes and returns a paths to the 'binned' directories.
        Complements the 'ImageDataGenerator' class in Keras.
        The train/val split mappings are stored into '.csv' files.
 
@@ -38,11 +38,12 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
     assert labels.size > 1, "Error: The size of 'labels' needs to be strictly > 1."
     assert validation_split in np.arange(0.0,1.0,1e-3), "Error: Invalid argument value: 'validation_split'"
     print('Tests passed.')
-    print('Total no. of files: ', )
-    print('Selected no. of files: ', len(mapping))
 
     print('\nThis might take a while...')
     start = time.time()
+
+    print('Total no. of files: ', )
+    print('Selected no. of files: ', len(mapping))
 
     # Helper functions
     def create_labels_folder(directory, labels):
@@ -93,6 +94,7 @@ def bin_dataset(base_dir, sub_dir, mapping, validation_split = 0.0, labels = [],
         data_vmap = pd.DataFrame(val_mapping, columns = ['id','label'])
         data_tmap.to_csv(os.path.join(bin_dir, 'train_map.csv'))
         data_vmap.to_csv(os.path.join(bin_dir, 'val_map.csv'))
+
         print("No. of train samples:" ,train_mapping.shape[0])
         print("No. of validation samples:" ,val_mapping.shape[0])
     

@@ -1,8 +1,8 @@
-# Kaggle
+# Kaggle - (In Progress)
 
 Competitions / Kernels:
 
-- [x] Titanic Survival
+- [ ] Titanic Survival
 - [ ] Fashion MNIST
 - [ ] MNIST
 - [ ] Dog Breed Identification
